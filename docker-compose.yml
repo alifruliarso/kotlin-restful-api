@@ -1,0 +1,17 @@
+version: '3.5'
+
+services:
+  kotlin-restful-api-postgres:
+    container_name: "kotlin-restful-api-postgres"
+    image: postgres:14.1-alpine
+    environment:
+      - POSTGRES_USER=kotlinpostgres
+      - POSTGRES_PASSWORD=kotlinpostgres
+      - POSTGRES_DB=restful-api
+    ports:
+      - '5432:5432'
+    volumes: 
+      - db:/var/lib/postgresql/data
+volumes:
+  db:
+    driver: local
