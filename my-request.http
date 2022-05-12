@@ -1,0 +1,23 @@
+POST http://localhost:8080/api/products
+Content-Type: application/json
+Accept: application/json
+
+{
+    "id":"A2222",
+    "name":"xiaomi 2222",
+    "price":2500
+}
+
+###
+POST http://localhost:8080/api/products
+Content-Type: application/json
+Accept: application/json
+
+{
+    "name":"gree 3333",
+    "price":3500
+}
+###
+POST http://localhost:8080/api/products/wrong-endpoint
+Content-Type: application/json
+Accept: application/json

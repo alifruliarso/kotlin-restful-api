@@ -5,12 +5,17 @@ import com.galapea.belajar.kotlinrestfulapi.model.CreateProductRequest
 import com.galapea.belajar.kotlinrestfulapi.model.ProductResponse
 import com.galapea.belajar.kotlinrestfulapi.repository.ProductRepository
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
+import com.galapea.belajar.kotlinrestfulapi.validation.ValidationUtil
 import org.springframework.stereotype.Service
 import java.util.*
 
 @Service
-class ProductServiceImpl(val productRepository: ProductRepository) : ProductService {
+class ProductServiceImpl(
+    val productRepository: ProductRepository,
+    val validationUtil: ValidationUtil
+) : ProductService {
     override fun create(createProductRequest: CreateProductRequest): ProductResponse {
+        validationUtil.validate(createProductRequest)
         val product = Product(
             id = createProductRequest.id,
             name = createProductRequest.name,
