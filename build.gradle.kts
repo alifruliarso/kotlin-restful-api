@@ -25,6 +25,9 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	runtimeOnly("org.postgresql:postgresql")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.assertj:assertj-core:3.22.0")
+	testImplementation("org.mockito.kotlin:mockito-kotlin:4.0.0")
+	testRuntimeOnly("com.h2database:h2")
 }
 
 tasks.withType<KotlinCompile> {
