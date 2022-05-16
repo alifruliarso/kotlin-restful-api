@@ -1,11 +1,13 @@
 package com.galapea.belajar.kotlinrestfulapi.service.impl
 
 import com.galapea.belajar.kotlinrestfulapi.entity.Product
+import com.galapea.belajar.kotlinrestfulapi.error.ProductNotFoundException
 import com.galapea.belajar.kotlinrestfulapi.model.CreateProductRequest
 import com.galapea.belajar.kotlinrestfulapi.model.ProductResponse
 import com.galapea.belajar.kotlinrestfulapi.repository.ProductRepository
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
 import com.galapea.belajar.kotlinrestfulapi.validation.ValidationUtil
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
 
@@ -25,6 +27,19 @@ class ProductServiceImpl(
             updatedAt = null
         )
         productRepository.save(product)
+        return convertProductToProductResponse(product)
+    }
+
+    override fun get(id: String): ProductResponse {
+        val product = productRepository.findByIdOrNull(id = id)
+        if (product == null) {
+            throw ProductNotFoundException(id = id)
+        } else {
+            return convertProductToProductResponse(product)
+        }
+    }
+
+    private fun convertProductToProductResponse(product: Product): ProductResponse {
         return ProductResponse(
             id = product.id,
             name = product.name,

@@ -1,5 +1,6 @@
 package com.galapea.belajar.kotlinrestfulapi.controller
 
+import com.galapea.belajar.kotlinrestfulapi.error.ProductNotFoundException
 import com.galapea.belajar.kotlinrestfulapi.model.WebResponse
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -40,5 +41,15 @@ class ErrorController {
             data = errors
         )
         return ResponseEntity(webResponse, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(value = [ProductNotFoundException::class])
+    fun notFound(notFoundException: ProductNotFoundException): ResponseEntity<Any> {
+        val webResponse = WebResponse(
+            code = 404,
+            status = "Not Found",
+            data = null
+        )
+        return ResponseEntity(webResponse, HttpStatus.NOT_FOUND)
     }
 }
