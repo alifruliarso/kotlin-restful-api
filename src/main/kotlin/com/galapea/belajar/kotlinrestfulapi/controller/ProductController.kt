@@ -4,10 +4,7 @@ import com.galapea.belajar.kotlinrestfulapi.model.CreateProductRequest
 import com.galapea.belajar.kotlinrestfulapi.model.ProductResponse
 import com.galapea.belajar.kotlinrestfulapi.model.WebResponse
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.ResponseBody
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 class ProductController(val productService: ProductService) {
@@ -23,6 +20,18 @@ class ProductController(val productService: ProductService) {
         return WebResponse(
             code = 200,
             status = "Created",
+            data = productResponse
+        )
+    }
+
+    @GetMapping(
+        value = ["/api/products/{productId}"]
+    )
+    fun get(@PathVariable(name = "productId") productId: String): WebResponse<ProductResponse> {
+        val productResponse = productService.get(productId)
+        return WebResponse(
+            code = 200,
+            status = "OK",
             data = productResponse
         )
     }

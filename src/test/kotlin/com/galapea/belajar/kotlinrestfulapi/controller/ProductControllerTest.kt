@@ -1,6 +1,7 @@
 package com.galapea.belajar.kotlinrestfulapi.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.galapea.belajar.kotlinrestfulapi.error.ProductNotFoundException
 import com.galapea.belajar.kotlinrestfulapi.model.CreateProductRequest
 import com.galapea.belajar.kotlinrestfulapi.model.ProductResponse
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
@@ -13,6 +14,7 @@ import org.springframework.boot.test.mock.mockito.MockBean
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.result.MockMvcResultHandlers
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
 import java.util.*
@@ -82,5 +84,44 @@ class ProductControllerTest(
             )
             .andReturn()
         println(mvcResult.response.contentAsString)
+    }
+
+    @Test
+    fun whenGetProductById_thenReturnProduct() {
+        val id = "s11"
+        val name = "name product"
+        val productResponse = ProductResponse(
+            id = id,
+            name = name,
+            price = 123,
+            quantity = 12,
+            createdAt = Date(),
+            updatedAt = null
+        )
+
+        whenever(productService.get(id = id)).thenReturn(productResponse)
+        mockMvc.perform(
+            get("/api/products/$id")
+        )
+            .andDo { MockMvcResultHandlers.print() }
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.data.id").value(id))
+            .andExpect(jsonPath("$.data.name").value(name))
+    }
+
+    @Test
+    fun whenGetProductByIdNotFound_thenReturnError() {
+        val id = "s11"
+        whenever(productService.get(id = id)).then { throw ProductNotFoundException(id) }
+        mockMvc.perform(
+            get("/api/products/$id")
+        )
+            .andDo { MockMvcResultHandlers.print() }
+            .andExpect(status().isNotFound)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.code", `is`(404)))
+            .andExpect(jsonPath("$.status", `is`("Not Found")))
+            .andExpect(jsonPath("$.data").isEmpty)
     }
 }
