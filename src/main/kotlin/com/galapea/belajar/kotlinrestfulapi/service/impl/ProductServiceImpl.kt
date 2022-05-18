@@ -2,15 +2,15 @@ package com.galapea.belajar.kotlinrestfulapi.service.impl
 
 import com.galapea.belajar.kotlinrestfulapi.entity.Product
 import com.galapea.belajar.kotlinrestfulapi.error.ProductNotFoundException
-import com.galapea.belajar.kotlinrestfulapi.model.CreateProductRequest
-import com.galapea.belajar.kotlinrestfulapi.model.ProductResponse
-import com.galapea.belajar.kotlinrestfulapi.model.UpdateProductRequest
+import com.galapea.belajar.kotlinrestfulapi.model.*
 import com.galapea.belajar.kotlinrestfulapi.repository.ProductRepository
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
 import com.galapea.belajar.kotlinrestfulapi.validation.ValidationUtil
+import org.springframework.data.domain.PageRequest
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.util.*
+import java.util.stream.Collectors
 
 @Service
 class ProductServiceImpl(
@@ -51,6 +51,24 @@ class ProductServiceImpl(
         }
         productRepository.save(product)
         return convertProductToProductResponse(product)
+    }
+
+    override fun delete(id: String) {
+        val product = productRepository.findByIdOrNull(id = id) ?: throw ProductNotFoundException(id = id)
+        productRepository.delete(product)
+    }
+
+    override fun list(listProductRequest: ListProductRequest): PageListProduct {
+        val page = productRepository.findAll(PageRequest.of(listProductRequest.page, listProductRequest.size))
+        val products: List<Product> = page.get().collect(Collectors.toList())
+        val listProduct = products.map { convertProductToProductResponse(it) }
+        return PageListProduct(
+            totalItems = page.numberOfElements,
+            totalPages = page.totalPages,
+            currentPage = listProductRequest.page,
+            listProduct = listProduct,
+            first = page.isFirst
+        )
     }
 
     private fun convertProductToProductResponse(product: Product): ProductResponse {

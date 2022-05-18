@@ -2,9 +2,7 @@ package com.galapea.belajar.kotlinrestfulapi.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.galapea.belajar.kotlinrestfulapi.error.ProductNotFoundException
-import com.galapea.belajar.kotlinrestfulapi.model.CreateProductRequest
-import com.galapea.belajar.kotlinrestfulapi.model.ProductResponse
-import com.galapea.belajar.kotlinrestfulapi.model.UpdateProductRequest
+import com.galapea.belajar.kotlinrestfulapi.model.*
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
@@ -131,7 +129,8 @@ class ProductControllerTest(
         val productName = "A name"
         val productPrice = 3456L
         val productQuantity = 4
-        val updateProductRequest = UpdateProductRequest(name = productName, price = productPrice, quantity = productQuantity)
+        val updateProductRequest =
+            UpdateProductRequest(name = productName, price = productPrice, quantity = productQuantity)
         val productResponse = ProductResponse(
             id = productId,
             name = productName,
@@ -162,7 +161,11 @@ class ProductControllerTest(
         val validatorFactory = Validation.buildDefaultValidatorFactory()
         val validator = validatorFactory.validator
         val constraints = validator.validate(updateProductRequest)
-        whenever(productService.update(id = productId, updateProductRequest)).then { throw ConstraintViolationException(constraints) }
+        whenever(productService.update(id = productId, updateProductRequest)).then {
+            throw ConstraintViolationException(
+                constraints
+            )
+        }
 
         val mvcResult = mockMvc.perform(
             put("/api/products/$productId").contentType(MediaType.APPLICATION_JSON)
@@ -186,5 +189,112 @@ class ProductControllerTest(
             )
             .andReturn()
         println(mvcResult.response.contentAsString)
+    }
+
+    @Test
+    fun whenDeleteProduct_thenReturn200() {
+        mockMvc.perform(
+            delete("/api/products/12345")
+        )
+            .andDo { MockMvcResultHandlers.print() }
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.code", `is`(200)))
+            .andExpect(jsonPath("$.status", `is`("Deleted")))
+            .andExpect(jsonPath("$.data").isEmpty)
+    }
+
+    @Test
+    fun givenInvalidId_whenDeleteProduct_thenReturnStatus404() {
+        whenever(productService.delete(id = "id")).then { throw ProductNotFoundException("id") }
+
+        mockMvc.perform(
+            delete("/api/products/id")
+        )
+            .andDo { MockMvcResultHandlers.print() }
+            .andExpect(status().isNotFound)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.code", `is`(404)))
+            .andExpect(jsonPath("$.status", `is`("Not Found")))
+            .andExpect(jsonPath("$.data").isEmpty)
+    }
+
+    @Test
+    fun whenGetProductList_thenReturnListOfProduct() {
+        val listProductResponse = generateListProductResponse()
+        val listProductRequest = ListProductRequest(page = 1, size = 3)
+        val pageListProduct = PageListProduct(
+            totalItems = 5,
+            totalPages = 2,
+            currentPage = 1,
+            listProduct = listProductResponse,
+            first = true
+        )
+        whenever(productService.list(listProductRequest)).thenReturn(pageListProduct)
+
+        mockMvc.perform(
+            get("/api/products").param("size", "3").param("page", "1")
+        )
+            .andDo { MockMvcResultHandlers.print() }
+            .andExpect(status().isOk)
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+            .andExpect(jsonPath("$.data").isNotEmpty)
+            .andExpect(jsonPath("$.data.totalItems", `is`(5)))
+            .andExpect(jsonPath("$.data.totalPages", `is`(2)))
+            .andExpect(jsonPath("$.data.currentPage", `is`(1)))
+            .andExpect(jsonPath("$.data.first", `is`(true)))
+            .andExpect(jsonPath("$.data.listProduct.length()", `is`(5)))
+            .andExpect(jsonPath("$.data.listProduct[*].id", containsInAnyOrder("1", "2", "3", "5", "4")))
+            .andExpect(
+                jsonPath(
+                    "$.data.listProduct[*].name",
+                    containsInAnyOrder("name1", "name2", "name3", "name4", "name5")
+                )
+            )
+    }
+
+    private fun generateListProductResponse(): List<ProductResponse> {
+        return listOf(
+            ProductResponse(
+                id = "1",
+                name = "name1",
+                price = 123,
+                quantity = 12,
+                createdAt = Date(),
+                updatedAt = null
+            ),
+            ProductResponse(
+                id = "2",
+                name = "name2",
+                price = 99,
+                quantity = 33,
+                createdAt = Date(),
+                updatedAt = null
+            ),
+            ProductResponse(
+                id = "3",
+                name = "name3",
+                price = 99,
+                quantity = 33,
+                createdAt = Date(),
+                updatedAt = null
+            ),
+            ProductResponse(
+                id = "4",
+                name = "name4",
+                price = 99,
+                quantity = 33,
+                createdAt = Date(),
+                updatedAt = null
+            ),
+            ProductResponse(
+                id = "5",
+                name = "name5",
+                price = 99,
+                quantity = 33,
+                createdAt = Date(),
+                updatedAt = null
+            )
+        )
     }
 }
