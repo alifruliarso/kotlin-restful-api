@@ -1,8 +1,11 @@
 package com.galapea.belajar.kotlinrestfulapi.controller
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.galapea.belajar.kotlinrestfulapi.auth.ApiKeyInterceptor
 import com.galapea.belajar.kotlinrestfulapi.error.ProductNotFoundException
+import com.galapea.belajar.kotlinrestfulapi.error.UnauthorizedException
 import com.galapea.belajar.kotlinrestfulapi.model.*
+import com.galapea.belajar.kotlinrestfulapi.repository.ApiKeyRepository
 import com.galapea.belajar.kotlinrestfulapi.service.ProductService
 import org.hamcrest.Matchers.*
 import org.junit.jupiter.api.Test
@@ -28,6 +31,12 @@ class ProductControllerTest(
 
     @MockBean
     lateinit var productService: ProductService
+
+    @MockBean
+    lateinit var apiKeyInterceptor: ApiKeyInterceptor
+
+    @MockBean
+    lateinit var apiKeyRepository: ApiKeyRepository
 
     @Test
     fun whenPostCreateProduct_thenReturnNewProduct() {
